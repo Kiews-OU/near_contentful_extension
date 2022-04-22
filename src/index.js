@@ -53,14 +53,18 @@ export const MainPage = ({ sdk }) => {
 
 
 
-  const BalanceInUSd = balance * 16.58
-  const usdSum = walletData.sum * 16.58
+  const BalanceInUSd = balance * walletData.price
+  const usdSum = walletData.sum * walletData.price
 
-
+ function GetCurrency(){
+   dispatch({type:"price"})
+ }
 
   useEffect(() => {
     setActive(false)
     GetBalance()
+    GetCurrency()
+    
   }, [])
   return (
     <TabPanel id="main" className="f36-margin-top--l">
@@ -145,7 +149,7 @@ export const MainPage = ({ sdk }) => {
               </div>
               <div style={{ display: "flex" }} >
                 <p style={{ margin: "0px", padding: "10px" }} >
-                  $16.58
+                  ${walletData.price}
                 </p>
                 <p style={{ margin: "0px", padding: "10px" }} >
                   ≈ ${BalanceInUSd.toLocaleString(undefined, { maximumFractionDigits: 2 })} USD
@@ -154,7 +158,6 @@ export const MainPage = ({ sdk }) => {
             </div>
           </div>
         </div>
-
         <div style={active ? { display: "block" } : { display: "none" }}>
           <div style={{ border: "1px solid gray", width: "700px", height: "auto", borderRadius: "16px" }}>
             <div style={{ padding: "15px", cursor: "pointer", display: "flex" }}

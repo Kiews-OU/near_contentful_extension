@@ -4,7 +4,7 @@ let walletState = {
   sum: "",
   rid: "",
   transaction:[],
-  TrError:""
+  price:""
 };
 export const walletReducer = (state = walletState, option) => {
   switch (option.type) {
@@ -21,6 +21,9 @@ export const walletReducer = (state = walletState, option) => {
       case "isError":
         state.TrError=option.error
         return state
+        case "getPrice":
+          state.price=option.payload
+          return state
     default:
       return state;
   }

@@ -1,4 +1,8 @@
-import { createStore } from "redux"
+import { applyMiddleware, createStore } from "redux"
+import createSagaMiddleware from "redux-saga"
 import reducers from "./reducers"
+import { rootSaga } from "./saga"
 
-export const store=createStore(reducers)
+const saga=createSagaMiddleware()
+export const store=createStore(reducers,applyMiddleware(saga))
+saga.run(rootSaga)
