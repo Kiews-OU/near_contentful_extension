@@ -8,3 +8,63 @@ div {
   font: inherit;
   vertical-align: baseline;
 }
+
+.blockBalance{
+  margin-top: 50px;
+  width: auto;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+.header{
+  padding-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.buttons{
+  cursor: pointer;
+  background-color: rgb(39, 39, 41);
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  min-height: 56px;
+  height: 56px;
+  min-width: 56px;
+  width: 56px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  transition: all 100ms ease 0s;
+  /* border-radius: 16px;
+  height: 50px;
+  width: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;*/
+  margin: 16px; 
+}
+.blockButtons{
+  display: flex;
+  justify-content:center;
+}
+.blockBottom{
+  display: flex;
+  justify-content: space-between;
+  margin: 15px;
+  margin-top: 50px;
+}
+.blockNear{
+  border-top: 1px solid gray;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  padding: 15px;
+}
+.blockTransactions{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 50px;
+}

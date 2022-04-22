@@ -1,1 +1,0 @@
-# near_contentful_extension
