@@ -1,6 +1,6 @@
 {
   "id": "my-near-extension",
   "name": "my-near-extension",
-  "srcdoc": "./build/index.html",
+  "srcdoc": "index.html",
   "sidebar": true
 }
