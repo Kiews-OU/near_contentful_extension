@@ -24,7 +24,6 @@ const networkId = 'testnet';
 const config = {
   networkId,
   keyStore,
-  contractName: "myfirstwallet.testnet",
   nodeUrl: `https://rpc.${networkId}.near.org`,
   walletUrl: `https://wallet.${networkId}.near.org`,
   helperUrl: `https://helper.${networkId}.near.org`,
@@ -47,7 +46,7 @@ export const MainPage = ({ sdk }) => {
     await keyStore.setKey(networkId, process.env.ACCOUNT_ID, keyPair);
     const near = await connect(config);
     const account = await near.account(process.env.ACCOUNT_ID);
-    // console.log(near);
+
 
     const sum = await account.getAccountBalance();
     const amountInNEAR = utils.format.formatNearAmount(sum.available, 2);
@@ -57,39 +56,12 @@ export const MainPage = ({ sdk }) => {
 
 
 
-  // const contract = new nearAPI.Contract(
-  //   "myfirstwallet.testnet", // the account object that is connecting
-  //   "example-contract.testnet",
-  //   {
-  //     // name of contract you're connecting to
-  //     viewMethods: ["getMessages"], // view methods do not change state but usually return a value
-  //     changeMethods: ["addMessage"], // change methods modify state
-  //     sender: "myfirstwallet.testnet", // account object to initialize and sign transactions.
-  //   }
-  // );
-
-
-  // console.log(contract);
-
-
   const BalanceInUSd = balance * walletData.price
   const usdSum = walletData.sum * walletData.price
 
   function GetCurrency() {
     dispatch({ type: "price" })
   }
-  // async function sendToken() {
-  //   const near = await connect(config);
-  //   const account = await near.account(sender);
-  //   await account.sendMoney(
-  //     sender,
-  //     amount // amount in yoctoNEAR
-  //   ).then((res) => {
-  //     console.log(`------------res `, res);
-  //   })
-  //   const response = await account.state();
-  //   console.log(`----------respnse `, response)
-  // }
 
   useEffect(() => {
     setActive(false)
