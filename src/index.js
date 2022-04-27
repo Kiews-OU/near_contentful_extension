@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { render } from 'react-dom';
 import PropTypes from 'prop-types';
 import { init, locations } from 'contentful-ui-extensions-sdk';
-import {  TabPanel,  Button, TextInput } from '@contentful/forma-36-react-components';
+import { TabPanel, Button, TextInput } from '@contentful/forma-36-react-components';
 import '@contentful/forma-36-react-components/dist/styles.css';
 import '@contentful/forma-36-fcss/dist/styles.css';
 import './index.css';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { store } from './store';
+import { WalletConnection } from 'near-api-js';
+import { parseContract } from 'near-contract-parser';
 const nearAPI = require("near-api-js");
 const { connect, utils } = nearAPI
 const { keyStores, KeyPair } = nearAPI;
@@ -22,6 +24,7 @@ const networkId = 'testnet';
 const config = {
   networkId,
   keyStore,
+  contractName: "myfirstwallet.testnet",
   nodeUrl: `https://rpc.${networkId}.near.org`,
   walletUrl: `https://wallet.${networkId}.near.org`,
   helperUrl: `https://helper.${networkId}.near.org`,
@@ -44,6 +47,7 @@ export const MainPage = ({ sdk }) => {
     await keyStore.setKey(networkId, process.env.ACCOUNT_ID, keyPair);
     const near = await connect(config);
     const account = await near.account(process.env.ACCOUNT_ID);
+    // console.log(near);
 
     const sum = await account.getAccountBalance();
     const amountInNEAR = utils.format.formatNearAmount(sum.available, 2);
@@ -53,19 +57,68 @@ export const MainPage = ({ sdk }) => {
 
 
 
+  // const contract = new nearAPI.Contract(
+  //   "myfirstwallet.testnet", // the account object that is connecting
+  //   "example-contract.testnet",
+  //   {
+  //     // name of contract you're connecting to
+  //     viewMethods: ["getMessages"], // view methods do not change state but usually return a value
+  //     changeMethods: ["addMessage"], // change methods modify state
+  //     sender: "myfirstwallet.testnet", // account object to initialize and sign transactions.
+  //   }
+  // );
+
+
+  // console.log(contract);
+
+
   const BalanceInUSd = balance * walletData.price
   const usdSum = walletData.sum * walletData.price
 
- function GetCurrency(){
-   dispatch({type:"price"})
- }
+  function GetCurrency() {
+    dispatch({ type: "price" })
+  }
+  // async function sendToken() {
+  //   const near = await connect(config);
+  //   const account = await near.account(sender);
+  //   await account.sendMoney(
+  //     sender,
+  //     amount // amount in yoctoNEAR
+  //   ).then((res) => {
+  //     console.log(`------------res `, res);
+  //   })
+  //   const response = await account.state();
+  //   console.log(`----------respnse `, response)
+  // }
 
   useEffect(() => {
     setActive(false)
     GetBalance()
     GetCurrency()
-    
+
   }, [])
+
+
+  const [method, setMethod] = useState({})
+  async function ParseContract() {
+    let near = await nearAPI.connect(config)
+
+    const { code_base64 } = await near.connection.provider.query({
+      account_id: walletData.CID,
+      finality: 'final',
+      request_type: 'view_code',
+    });
+
+    const parsed_contract = await parseContract(code_base64)
+
+    console.log('---- parsed contract ', parsed_contract)
+    console.log('Contract Methods: ', parsed_contract.byMethod)
+    setMethod(parsed_contract.byMethod)
+  }
+
+
+
+
   return (
     <TabPanel id="main" className="f36-margin-top--l">
       <div style={{ width: "100%vh", height: "auto", display: "flex", justifyContent: "center" }} >
@@ -96,7 +149,9 @@ export const MainPage = ({ sdk }) => {
               <p style={{ margin: "0px" }} >Send</p>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }} >
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}
+              oncloc
+            >
               <div
                 className="buttons" >
                 <svg style={{ color: "white" }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-down" viewBox="0 0 16 16">
@@ -160,12 +215,15 @@ export const MainPage = ({ sdk }) => {
         </div>
         <div style={active ? { display: "block" } : { display: "none" }}>
           <div style={{ border: "1px solid gray", width: "700px", height: "auto", borderRadius: "16px" }}>
-            <div style={{ padding: "15px", cursor: "pointer", display: "flex" }}
-              onClick={() => {
-                setActive(false)
-              }}
+            <div style={{ padding: "15px", display: "flex", alignItems: "center" }}
+
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16">
+              <svg
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  setActive(false)
+                }}
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z" />
               </svg>
               <p style={{ paddingLeft: "10px" }} >Back</p>
@@ -191,7 +249,8 @@ export const MainPage = ({ sdk }) => {
             <div style={{ display: "flex", justifyContent: "center", padding: "12px" }}>
               <div
                 style={{ backgroundColor: "black", color: "white", width: "150px", height: "35px", borderRadius: "16px", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center" }}
-                onClick={ async () => {
+                onClick={async () => {
+                  // sendToken()
                   await keyStore.setKey(networkId, sender, keyPair);
                   const near = await connect(config);
                   const senderAccount = await near.account(sender);
@@ -230,14 +289,36 @@ export const MainPage = ({ sdk }) => {
                     }
 
                   </div>
-
                 )
               })
             }
           </div>
         </div>
-
-
+      </div>
+      <div style={active ? { margin: "30px", display: "flex" } : { display: "none" }}
+      >
+        <div style={{ display: "flex", flexDirection: "column" }} >
+          <TextInput
+            placeholder='Enter Your ID To Get Methods'
+            style={{ width: "220px" }}
+            onChange={(e) => {
+              dispatch({ type: "setContr", value: e.target.value })
+            }}
+          />
+          <Button buttonType='success'
+            style={{ width: "220px",marginTop:"12px" }}
+            onClick={() => {
+              ParseContract()
+            }}
+          >
+            Parse Contract
+          </Button>
+        </div>
+        <div style={{ width: "100%",paddingLeft:"12px"  }} >
+          <pre  >
+           { JSON.stringify(method, undefined, 2)}
+          </pre>
+        </div>
       </div>
 
     </TabPanel>
@@ -253,12 +334,12 @@ export function SidebarExtension(props) {
 
   return (
     <Button
-    buttonType='success'
+      buttonType='success'
       testId="open-page-extension"
       onClick={() => {
         props.sdk.navigator.openPageExtension({ path: '/' });
       }}>
-      Open page extension
+      Connect Wallet
     </Button>
   );
 }

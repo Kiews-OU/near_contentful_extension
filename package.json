@@ -36,6 +36,7 @@
     "history": "5.0.0",
     "immer": "^9.0.12",
     "near-api-js": "^0.44.2",
+    "near-contract-parser": "^0.1.4",
     "prop-types": "15.7.2",
     "react": "16.14.0",
     "react-dom": "16.14.0",
