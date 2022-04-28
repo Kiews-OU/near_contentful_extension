@@ -5,7 +5,9 @@ let walletState = {
   rid: "",
   transaction: [],
   price: "",
-  CID: ""
+  CID: "",
+  id:"",
+  key:""
 };
 export const walletReducer = (state = walletState, option) => {
   switch (option.type) {
@@ -28,6 +30,9 @@ export const walletReducer = (state = walletState, option) => {
     case "setContr":
       state.CID = option.value
       return state
+      case "setAccData":
+        state[option.key]=option.value
+        return state
     default:
       return state;
   }
