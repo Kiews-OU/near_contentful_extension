@@ -8,7 +8,7 @@ import '@contentful/forma-36-fcss/dist/styles.css';
 import './index.css';
 const nearAPI = require("near-api-js");
 import { parseContract } from 'near-contract-parser'
-import { connect, KeyPair, utils } from 'near-api-js'
+import { connect, KeyPair, utils, WalletConnection } from 'near-api-js'
 import { store } from './store';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import getConfig from './config'
@@ -31,17 +31,18 @@ export const MainPage = ({ sdk }) => {
 
 
   async function GetBalance() {
-    const near = await connect(nearConfig);
-    const account = await near.account(localStorage.accountID);
-
+    window.near = await connect(nearConfig);
+    window.account = await near.account(localStorage.accountID);
+    window.wallet = new WalletConnection(window.near);
     const sum = await account.getAccountBalance();
     const amountInNEAR = utils.format.formatNearAmount(sum.available, 2);
     setBalance(amountInNEAR)
   }
+
   const [method, setMethod] = useState({})
   async function ParseContract() {
-    let near = await nearAPI.connect(nearConfig)
-    const { code_base64 } = await near.connection.provider.query({
+  
+    const { code_base64 } = await window.near.connection.provider.query({
       account_id: walletData.CID,
       finality: 'final',
       request_type: 'view_code',
@@ -50,8 +51,17 @@ export const MainPage = ({ sdk }) => {
     setMethod(parsed_contract.byMethod)
   }
 
+
+
   function GetCurrency() {
     dispatch({ type: "price" })
+  }
+
+
+
+  function logout() {
+    window.wallet.signOut();
+    localStorage.removeItem('accountID')
   }
 
 
@@ -117,6 +127,9 @@ export const MainPage = ({ sdk }) => {
               oncloc
             >
               <div
+                onClick={() => {
+                  window.open('https://wallet.testnet.near.org/receive-money')
+                }}
                 className="buttons" >
                 <svg style={{ color: "white" }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-down" viewBox="0 0 16 16">
                   <path fill-rule="evenodd" d="M4.854 14.854a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V3.5A2.5 2.5 0 0 1 6.5 1h8a.5.5 0 0 1 0 1h-8A1.5 1.5 0 0 0 5 3.5v9.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4z" />
@@ -128,13 +141,14 @@ export const MainPage = ({ sdk }) => {
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }} >
 
               <div
+                onClick={logout}
                 className="buttons" >
-                <svg style={{ color: "white" }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
-                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                <svg style={{ color: "white" }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z" />
+                  <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z" />
                 </svg>
               </div>
-              <p style={{ margin: "0px" }} >Top Up</p>
+              <p style={{ margin: "0px" }} >Log Out</p>
             </div>
 
           </div>
@@ -214,10 +228,9 @@ export const MainPage = ({ sdk }) => {
               <div
                 style={{ backgroundColor: "black", color: "white", width: "150px", height: "35px", borderRadius: "16px", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center" }}
                 onClick={async () => {
-                  const near = await connect(nearConfig);
-                  const account = await near.account(localStorage.accountID);
+                 
                   try {
-                    const result = await account.sendMoney(
+                    const result = await window.account.sendMoney(
                       receiver, // receiver account
                       amount// amount in yoctoNEAR
                     )
@@ -225,6 +238,7 @@ export const MainPage = ({ sdk }) => {
                     sdk.notifier.success(`Sending ${utils.format.formatNearAmount(amount)}Ⓝ from ${sender} to ${receiver}...`)
                   } catch (error) {
                     sdk.notifier.error(`oops something went wrong`)
+                    console.log(error);
                   }
                 }}
               >Send</div>
@@ -272,8 +286,8 @@ export function SidebarExtension(props) {
   let walletData = useSelector((state) => state.wallet)
   function login() {
     const accessKey = KeyPair.fromRandom('ed25519');
-    const keyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore()
-    keyStore.setKey("testnet", "account", accessKey)
+    const keyStore = nearConfig.keyStore
+    keyStore.setKey("testnet", localStorage.accountID, accessKey)
     const publicKey = accessKey.getPublicKey().toString()
     window.open(`https://wallet.testnet.near.org/login?contract_id=${walletData.ID}&public_key=` + publicKey + "&success_url=" + encodeURIComponent(`https://app.contentful.com/spaces/${props.sdk.ids.space}/environments/${props.sdk.ids.environment}/extensions/${props.sdk.ids.extension}/`))
   }
